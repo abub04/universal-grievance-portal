@@ -9,6 +9,7 @@ from authlib.integrations.flask_client import OAuth
 import smtplib
 from email.message import EmailMessage
 import pickle
+import threading
 from deep_translator import GoogleTranslator
 
 app = Flask(__name__)
@@ -353,7 +354,8 @@ Please review the statement above and initiate your internal escalation protocol
 Best Regards,
 AI Grievance Detection Engine
 """
-            send_real_mail(SENDER_EMAIL, subject, alert_body)
+            thread = threading.Thread(target=send_real_mail, args=(SENDER_EMAIL, subject, alert_body))
+            thread.start()
             
             return render_template('dashboard.html', email=session['user_email'], apps=ride_apps,
                                    original=raw_grievance, translated=translated_text,
