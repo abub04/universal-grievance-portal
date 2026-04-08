@@ -54,9 +54,9 @@ def authorize():
     user_info = resp.json()
     email = user_info['email']
 
-   
-    conn = sqlite3.connect('users_data.db')
+    conn = sqlite3.connect(DB_PATH) 
     c = conn.cursor()
+    
     if not c.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone():
         c.execute("INSERT INTO users (email) VALUES (?)", (email,)) 
         conn.commit()
