@@ -62,7 +62,7 @@ def authorize():
 # 🛑 EMAIL SETUP
 # ==========================================
 SENDER_EMAIL = os.environ.get('EMAIL_USER')
-APP_PASSWORD = os.environ.get('EMAIL_PASS')  
+APP_PASSWORD = os.environ.get('EMAIL_PASS') 
 
 def send_real_mail(receiver_email, subject, body):
     try:
@@ -359,4 +359,7 @@ def logout():
 if __name__ == '__main__':
     if not os.path.exists('static'):
         os.makedirs('static')
-    app.run(debug=True)
+    
+    # Render-க்கு ஏத்த மாதிரி போர்ட் மற்றும் ஹோஸ்ட் செட்டிங்ஸ்
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
