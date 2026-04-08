@@ -12,7 +12,7 @@ import pickle
 from deep_translator import GoogleTranslator
 
 app = Flask(__name__)
-app.secret_key = "ugp_admin_2026"
+app.secret_key = os.environ.get('APP_KEY')
 # ==========================================
 # 🌐 GOOGLE LOGIN SETUP
 # ==========================================
