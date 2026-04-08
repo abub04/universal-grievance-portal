@@ -13,6 +13,15 @@ from deep_translator import GoogleTranslator
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('APP_KEY')
+basedir = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(basedir, 'users_data.db')
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, mobile TEXT, state TEXT, district TEXT)''')
+    conn.commit()
+    conn.close()
 # ==========================================
 # 🌐 GOOGLE LOGIN SETUP
 # ==========================================
@@ -65,20 +74,23 @@ SENDER_EMAIL = os.environ.get('EMAIL_USER')
 APP_PASSWORD = os.environ.get('EMAIL_PASS') 
 
 def send_real_mail(receiver_email, subject, body):
-    if not SENDER_EMAIL or not APP_PASSWORD:
-        print("Mail Error: Credentials missing in Environment Variables")
+    user = os.environ.get('EMAIL_USER')
+    password = os.environ.get('EMAIL_PASS')
+    
+    if not user or not password:
+        print("Mail Error: Credentials missing")
         return False
         
     try:
         msg = EmailMessage()
         msg.set_content(body)
         msg['Subject'] = subject
-        msg['From'] = f"Grievance Portal Admin <{SENDER_EMAIL}>"
+        msg['From'] = f"Grievance Portal Admin <{user}>"
         msg['To'] = receiver_email
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        server.login(SENDER_EMAIL, APP_PASSWORD)
+        server.login(user, password)
         server.send_message(msg)
         server.quit()
         return True
@@ -365,6 +377,5 @@ if __name__ == '__main__':
     if not os.path.exists('static'):
         os.makedirs('static')
     
-
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
