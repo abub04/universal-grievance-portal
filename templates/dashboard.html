@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard - Driver Grievance Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .navbar-custom { background-color: #2d3436; color: white; padding: 15px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; margin-top: 30px; }
+        .mic-btn { background-color: #ff7675; border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 20px; transition: 0.3s; }
+        .mic-btn.recording { background-color: #d63031; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div class="navbar-custom d-flex justify-content-between align-items-center">
+    <h4>📢 AI Driver Grievance Portal</h4>
+    <div>
+        <span class="me-3">👤 {{ email }}</span>
+        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'danger' else ('success' if category == 'success' else 'warning') }} text-center fw-bold">
+            {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="card p-4">
+        <h3 class="text-center mb-4">Submit Your Grievance</h3>
+        
+        <form action="/submit_grievance" method="POST">
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="fw-bold">👤 Full Name:</label>
+                    <input type="text" name="user_name" class="form-control" placeholder="Enter your name" required>
+                </div>
+                <div class="col-md-6 mt-3 mt-md-0">
+                    <label class="fw-bold">📞 Mobile Number:</label>
+                    <input type="tel" name="user_mobile" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="fw-bold">🗺️ Select State:</label>
+                    <select name="state" id="stateSelect" class="form-select" onchange="loadDistricts()" required>
+                        <option value="" disabled selected>-- Choose State --</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mt-3 mt-md-0">
+                    <label class="fw-bold">🏙️ Select District:</label>
+                    <select name="district" id="districtSelect" class="form-select" required disabled>
+                        <option value="" disabled selected>-- Select State First --</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+
+            <div class="row mb-3 mt-3">
+                <div class="col-md-6">
+                    <label class="fw-bold">🗣️ Select Your Voice Language:</label>
+                    <select id="voice_lang" class="form-select">
+                        <option value="en-IN" selected>English</option>
+                        <option value="ta-IN">Tamil (தமிழ்)</option>
+                        <option value="hi-IN">Hindi (हिंदी)</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mt-3 mt-md-0">
+                    <label class="fw-bold">📱 Select Ride-Hailing App:</label>
+                    <select name="app_name" class="form-select" required>
+                        <option value="" disabled selected>-- Choose the App --</option>
+                        {% for app in apps %}
+                            <option value="{{ app }}">{{ app }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">📝 Grievance Statement (Type or use Mic):</label>
+                <div class="d-flex gap-2 align-items-center">
+                    <textarea name="grievance_text" id="grievance_input" class="form-control" rows="4" placeholder="Express your issue here in English, Tamil, or Hindi..." required></textarea>
+                    
+                    <button type="button" id="mic-btn" class="mic-btn" title="Click to Speak" onclick="startDictation()">🎤</button>
+                </div>
+                <small id="mic-status" class="text-muted mt-1 d-block"></small>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 fw-bold fs-5 mt-2">Submit Grievance to AI</button>
+        </form>
+
+        {% if original %}
+        <div class="card p-4 mt-4 shadow-sm" style="border-left: 5px solid #0984e3; background-color: #f8f9fa;">
+            <h4 class="mb-3 text-dark">📊 AI Analysis Report</h4>
+            
+            <div class="mb-2">
+                <strong>🗣️ Original Statement:</strong> <br>
+                <span class="text-secondary" style="font-size: 1.1em;">{{ original }}</span>
+            </div>
+            
+            <div class="mb-4">
+                <strong>🌐 Translated (English):</strong> <br>
+                <span class="text-secondary" style="font-size: 1.1em;">{{ translated }}</span>
+            </div>
+            
+            {% if is_critical %}
+                <div class="alert alert-danger fw-bold text-center">
+                    🚨 Critical Grievance Detected! Escalated to {{ company_mail }}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ playstore_link }}" target="_blank" class="btn btn-outline-dark fw-bold w-100">
+                        🔗 Go to {{ selected_app }} Play Store Page
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-success fw-bold text-center">
+                    ✅ Statement Analyzed! No critical grievance detected. Saved to records.
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // 🔥 PUDHUSA ADD PANNA CASCADING DROPDOWN LOGIC 🔥
+    const indiaData = {
+        "Tamil Nadu": [
+            "Ariyalur", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"
+        ],
+        "Kerala": [
+            "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"
+        ],
+        "Karnataka": [
+            "Bagalkot", "Bangalore", "Belagavi", "Bellary", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru", "Dakshina Kannada", "Davanagere", "Dharwad", "Hassan", "Kalaburagi", "Kodagu", "Kolar", "Mandya", "Mysuru", "Raichur", "Udupi", "Uttara Kannada"
+        ],
+        "Andhra Pradesh": [
+            "Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Nellore", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"
+        ]
+    };
+
+    function loadDistricts() {
+        const stateSelect = document.getElementById("stateSelect");
+        const districtSelect = document.getElementById("districtSelect");
+        const selectedState = stateSelect.value;
+
+        districtSelect.innerHTML = '<option value="" disabled selected>-- Choose District --</option>';
+
+        if (selectedState !== "") {
+            districtSelect.disabled = false;
+            const districts = indiaData[selectedState];
+            districts.forEach(district => {
+                const option = document.createElement("option");
+                option.value = district;
+                option.text = district;
+                districtSelect.appendChild(option);
+            });
+        } else {
+            districtSelect.disabled = true;
+        }
+    }
+
+    // 🎙️ PALAYA MIC LOGIC (Idha naan mathala)
+    function startDictation() {
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+            var recognition = new webkitSpeechRecognition();
+            var micBtn = document.getElementById('mic-btn');
+            var statusText = document.getElementById('mic-status');
+
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            var selectedLang = document.getElementById('voice_lang').value; 
+            recognition.lang = selectedLang; 
+            
+            recognition.start();
+            micBtn.classList.add('recording');
+            statusText.innerHTML = "🎙️ Listening... Please speak now.";
+
+            recognition.onresult = function(e) {
+                document.getElementById('grievance_input').value += e.results[0][0].transcript + " ";
+                recognition.stop();
+                micBtn.classList.remove('recording');
+                statusText.innerHTML = "✅ Voice captured successfully!";
+            };
+
+            recognition.onerror = function(e) {
+                recognition.stop();
+                micBtn.classList.remove('recording');
+                statusText.innerHTML = "❌ Could not hear clearly. Try again.";
+            }
+        } else {
+            alert("Your browser does not support Voice Recognition. Please use Google Chrome.");
+        }
+    }
+</script>
+
+</body>
+</html>

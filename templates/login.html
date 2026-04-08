@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login - Driver Grievance Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .card { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; max-width: 400px; margin: auto; }
+        .btn-custom { background-color: #2d3436; color: white; font-weight: bold; }
+        .btn-custom:hover { background-color: #0984e3; color: white; }
+        .captcha-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .captcha-img { border: 2px solid #dfe6e9; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">📢 Driver Grievance Portal</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} text-center max-width-400 mx-auto">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card p-4">
+        <h4 class="text-center mb-3">🔒 Secure Login</h4>
+        <form action="/login_submit" method="POST">
+            <div class="mb-3">
+                <label>Registered Email ID</label>
+                <input type="email" name="log_email" class="form-control" required>
+            </div>
+            
+            <div class="captcha-box">
+                <img src="{{ captcha_url }}?{{ range(1, 1000) | random }}" class="captcha-img" alt="Captcha">
+                <a href="/refresh_captcha/login" class="btn btn-outline-secondary" title="Refresh Captcha">🔄</a>
+            </div>
+            
+            <div class="mb-3">
+                <input type="text" name="log_captcha" class="form-control" placeholder="Enter Captcha above" required>
+            </div>
+            <button type="submit" class="btn btn-custom w-100">Login</button>
+            <div class="text-center mt-3 mb-2">
+                <span class="text-muted fw-bold">OR</span>
+            </div>
+            
+            <a href="/login/google" class="btn btn-outline-dark w-100 fw-bold d-flex align-items-center justify-content-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" width="20" class="me-2" alt="Google Logo">
+                Continue with Google
+            </a>
+        </form>
+        <div class="text-center mt-3">
+            <p>New Driver? <a href="/register_page" style="text-decoration: none; font-weight: bold;">Register Here</a></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

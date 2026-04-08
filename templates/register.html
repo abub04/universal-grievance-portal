@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Register - Driver Grievance Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .card { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; max-width: 450px; margin: auto; }
+        .captcha-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .captcha-img { border: 2px solid #dfe6e9; border-radius: 5px; }
+        .timer-box { font-size: 18px; color: #d63031; font-weight: bold; background-color: #ffeaa7; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid #ff7675; }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">📢 Join Driver Portal</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} text-center max-width-450 mx-auto">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card p-4">
+        <h4 class="text-center mb-3">📝 New Registration</h4>
+        
+        <form action="/send_otp" method="POST">
+            <div class="mb-3">
+                <label>Email ID</label>
+                <input type="email" name="reg_email" class="form-control" required value="{{ session.get('reg_email', '') }}">
+            </div>
+            
+            <div class="captcha-box">
+                <img src="{{ captcha_url }}?{{ range(1, 1000) | random }}" class="captcha-img" alt="Captcha">
+                <a href="/refresh_captcha/register" class="btn btn-outline-secondary" title="Refresh Captcha">🔄</a>
+            </div>
+            
+            <div class="mb-3">
+                <input type="text" name="reg_captcha" class="form-control" placeholder="Enter Captcha above" required>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 mb-3 fw-bold">Send OTP to Mail</button>
+        </form>
+
+        <form action="/register_submit" method="POST">
+            <div class="mb-3">
+                <input type="text" name="reg_otp" class="form-control" placeholder="Enter 6-digit OTP" required>
+            </div>
+            <div id="timer" class="timer-box mb-3" style="display: none;"></div>
+            <button type="submit" class="btn btn-success w-100 fw-bold">Register Now</button>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p>Already Registered? <a href="/" style="text-decoration: none; font-weight: bold;">Login Here</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isOtpSent = "{{ session.get('generated_otp', '') }}" !== "";
+    let otpTime = parseFloat("{{ session.get('otp_time', 0) }}");
+    
+    if (isOtpSent && otpTime > 0) {
+        document.getElementById('timer').style.display = 'block';
+        let elem = document.getElementById('timer');
+        
+        function updateTimer() {
+            let currentTime = Math.floor(Date.now() / 1000);
+            let timeElapsed = currentTime - Math.floor(otpTime);
+            let timeLeft = 180 - timeElapsed;
+            
+            if (timeLeft <= 0) {
+                elem.innerHTML = "❌ OTP Expired!";
+            } else {
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                elem.innerHTML = "⏳ Time Remaining: 0" + m + ":" + (s < 10 ? '0' : '') + s;
+                setTimeout(updateTimer, 1000);
+            }
+        }
+        updateTimer();
+    }
+</script>
+</body>
+</html>
