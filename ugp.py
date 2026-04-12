@@ -354,7 +354,7 @@ Please review the statement above and initiate your internal escalation protocol
 Best Regards,
 AI Grievance Detection Engine
 """
-           send_real_mail(SENDER_EMAIL, subject, alert_body)
+            send_real_mail(SENDER_EMAIL, subject, alert_body)
             
             return render_template('dashboard.html', email=session['user_email'], apps=ride_apps,
                                    original=raw_grievance, translated=translated_text,
