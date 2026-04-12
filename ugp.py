@@ -79,21 +79,21 @@ def send_real_mail(receiver_email, subject, body):
     password = os.environ.get('EMAIL_PASS')
     
     if not user or not password:
-        print("Mail Error: Credentials missing")
+        print("Mail Error: Credentials missing in Render Environment")
         return False
         
     try:
         msg = EmailMessage()
         msg.set_content(body)
         msg['Subject'] = subject
-        msg['From'] = f"Grievance Portal Admin <{user}>"
+        msg['From'] = f"Universal Grievance Portal <{user}>"
         msg['To'] = receiver_email
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(user, password)
-        server.send_message(msg)
-        server.quit()
+        # Port 465 and SMTP_SSL is best for Render
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
+            server.login(user, password)
+            server.send_message(msg)
+        print("✅ Mail Sent Successfully!")
         return True
     except Exception as e:
         print("Mail Error:", e)
@@ -213,7 +213,7 @@ Automated Security Team
 AI Grievance Portal
 (Note: This is an auto-generated system email. Please do not reply.)"""
         
-        send_real_mail(email, subject, body)
+       send_real_mail(email, subject, body)
         flash('✅ OTP sent successfully! Valid for 3 Minutes ⏳', 'success')
     
     conn.close()
@@ -354,8 +354,7 @@ Please review the statement above and initiate your internal escalation protocol
 Best Regards,
 AI Grievance Detection Engine
 """
-            thread = threading.Thread(target=send_real_mail, args=(SENDER_EMAIL, subject, alert_body))
-            thread.start()
+           send_real_mail(SENDER_EMAIL, subject, alert_body)
             
             return render_template('dashboard.html', email=session['user_email'], apps=ride_apps,
                                    original=raw_grievance, translated=translated_text,
