@@ -78,25 +78,27 @@ def send_real_mail(receiver_email, subject, body):
     user = os.environ.get('EMAIL_USER')
     password = os.environ.get('EMAIL_PASS')
     
-    if not user or not password:
-        print("Mail Error: Credentials missing in Render Environment")
-        return False
-        
-    try:
-        msg = EmailMessage()
-        msg.set_content(body)
-        msg['Subject'] = subject
-        msg['From'] = f"Universal Grievance Portal <{user}>"
-        msg['To'] = receiver_email
+    print(f"DEBUG: Attempting mail to {receiver_email}")
 
-        # Port 465 and SMTP_SSL is best for Render
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
-            server.login(user, password)
-            server.send_message(msg)
-        print("✅ Mail Sent Successfully!")
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['Subject'] = subject
+    msg['From'] = f"Universal Grievance Portal <{user}>"
+    msg['To'] = receiver_email
+
+    try:
+        # Port 587-ஐ 'Force TLS' மெத்தட்ல ட்ரை பண்ணுவோம்
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
+        server.ehlo() 
+        server.starttls() # இதான் முக்கியம்
+        server.ehlo()
+        server.login(user, password)
+        server.send_message(msg)
+        server.quit()
+        print("✅ DEBUG: SMTP SUCCESS with 587!")
         return True
     except Exception as e:
-        print("Mail Error:", e)
+        print(f"❌ DEBUG: SMTP Error Detail: {str(e)}")
         return False
 
 def init_db():
