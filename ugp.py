@@ -213,7 +213,7 @@ Automated Security Team
 AI Grievance Portal
 (Note: This is an auto-generated system email. Please do not reply.)"""
         
-       send_real_mail(email, subject, body)
+        send_real_mail(email, subject, body)
         flash('✅ OTP sent successfully! Valid for 3 Minutes ⏳', 'success')
     
     conn.close()
