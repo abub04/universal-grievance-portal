@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 import time
 import os
+import requests
 from captcha.image import ImageCaptcha
 from authlib.integrations.flask_client import OAuth
 import pickle
