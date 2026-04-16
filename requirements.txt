@@ -10,3 +10,4 @@ joblib
 numpy
 pandas
 gunicorn
+pickle
