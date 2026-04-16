@@ -6,8 +6,6 @@ import time
 import os
 from captcha.image import ImageCaptcha
 from authlib.integrations.flask_client import OAuth
-import smtplib
-from email.message import EmailMessage
 import pickle
 import threading
 from deep_translator import GoogleTranslator
@@ -69,36 +67,30 @@ def authorize():
     return redirect(url_for('dashboard'))
 
 # ==========================================
-# 🛑 EMAIL SETUP
+# 🚀 MAIL API SETUP (Via PythonAnywhere)
 # ==========================================
-SENDER_EMAIL = os.environ.get('EMAIL_USER')
-APP_PASSWORD = os.environ.get('EMAIL_PASS') 
-
 def send_real_mail(receiver_email, subject, body):
-    user = os.environ.get('EMAIL_USER')
-    password = os.environ.get('EMAIL_PASS')
+   
+    api_url = "https://drivergrievancemail123.pythonanywhere.com/send_api_mail"
     
-    print(f"DEBUG: Attempting mail to {receiver_email}")
-
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = f"Universal Grievance Portal <{user}>"
-    msg['To'] = receiver_email
-
+    payload = {
+        "email": receiver_email,
+        "subject": subject,
+        "body": body
+    }
+    
     try:
-        # Port 587-ஐ 'Force TLS' மெத்தட்ல ட்ரை பண்ணுவோம்
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
-        server.ehlo() 
-        server.starttls() # இதான் முக்கியம்
-        server.ehlo()
-        server.login(user, password)
-        server.send_message(msg)
-        server.quit()
-        print("✅ DEBUG: SMTP SUCCESS with 587!")
-        return True
+        
+        response = requests.post(api_url, json=payload, timeout=15)
+        
+        if response.status_code == 200:
+            print("✅ Awesome! PythonAnywhere triggered the mail.")
+            return True
+        else:
+            print(f"❌ API Error: {response.status_code} - {response.text}")
+            return False
     except Exception as e:
-        print(f"❌ DEBUG: SMTP Error Detail: {str(e)}")
+        print(f"❌ Connection Failed to Mail API: {e}")
         return False
 
 def init_db():
