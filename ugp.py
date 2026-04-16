@@ -256,7 +256,7 @@ def dashboard():
         flash("Please login to access the dashboard.", "error")
         return redirect(url_for('login_page'))
     
-    ride_apps = ["Uber Driver", "Ola Partner", "Rapido Captain", "Namma Yatri Partner", "inDrive - Drivers", "Porter Partner", "RedTaxi Driver"]
+    ride_apps = ["Uber Driver", "Ola Partner", "Rapido Captain", "Namma Yatri Partner"]
     return render_template('dashboard.html', email=session['user_email'], apps=ride_apps)
 
 @app.route('/submit_grievance', methods=['POST'])
@@ -264,7 +264,7 @@ def submit_grievance():
     if not session.get('logged_in'):
         return redirect(url_for('login_page'))
 
-    ride_apps = ["Uber Driver", "Ola Partner", "Rapido Captain", "Namma Yatri Partner", "inDrive - Drivers", "Porter Partner", "RedTaxi Driver"]
+    ride_apps = ["Uber Driver", "Ola Partner", "Rapido Captain", "Namma Yatri Partner"]
     app_name = request.form.get('app_name')
     raw_grievance = request.form.get('grievance_text')
     
