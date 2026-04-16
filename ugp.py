@@ -83,7 +83,7 @@ def send_real_mail(receiver_email, subject, body):
     
     try:
         
-        response = requests.post(api_url, json=payload, timeout=15)
+        response = requests.post(MAIL_API_URL, json=payload, timeout=15)
         
         if response.status_code == 200:
             print("✅ Awesome! PythonAnywhere triggered the mail.")
