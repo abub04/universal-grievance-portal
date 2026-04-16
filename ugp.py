@@ -5,6 +5,7 @@ from datetime import datetime
 import time
 import os
 import requests
+import traceback
 from captcha.image import ImageCaptcha
 from authlib.integrations.flask_client import OAuth
 import pickle
@@ -349,7 +350,10 @@ Please review the statement above and initiate your internal escalation protocol
 Best Regards,
 AI Grievance Detection Engine
 """
-            send_real_mail(SENDER_EMAIL, subject, alert_body)
+          
+
+            
+            send_real_mail(company_mail, subject, alert_body)
             
             return render_template('dashboard.html', email=session['user_email'], apps=ride_apps,
                                    original=raw_grievance, translated=translated_text,
@@ -361,7 +365,13 @@ AI Grievance Detection Engine
                                    is_critical=False)
                                    
     except Exception as e:
-        flash("🚨 System Error during ML prediction.", "error")
+        
+        print("====================================", flush=True)
+        print(f"🚨 ACTUAL ERROR: {str(e)}", flush=True)
+        print(traceback.format_exc(), flush=True)
+        print("====================================", flush=True)
+        
+        flash("🚨 System Error! Please check Render Logs.", "error")
         return redirect(url_for('dashboard'))
 
 @app.route('/logout')
