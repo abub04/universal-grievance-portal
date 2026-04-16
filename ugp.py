@@ -307,7 +307,7 @@ def submit_grievance():
         if pred == 1 or str(pred).lower() == 'grievance' or is_forced_grievance:
             
             verified_emails = {
-                "Rapido Captain": "captaincare@rapido.bike",
+                "Rapido Captain": "shoutout@rapido.bike",
                 "Ola Partner": "partnersupport@olacabs.com",
                 "Uber Driver": "drivers@uber.com",
                 "Namma Yatri Partner": "support@nammayatri.in"
