@@ -73,7 +73,7 @@ def authorize():
 # ==========================================
 def send_real_mail(receiver_email, subject, body):
    
-    api_url = "https://drivergrievancemail123.pythonanywhere.com/send_api_mail"
+    MAIL_API_URL = os.getenv('MAIL_API_URL')
     
     payload = {
         "email": receiver_email,
